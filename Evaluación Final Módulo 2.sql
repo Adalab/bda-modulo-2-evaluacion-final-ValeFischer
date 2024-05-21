@@ -80,7 +80,7 @@ GROUP BY customer.customer_id, customer.first_name, customer.last_name;
 la categoría junto con el recuento de alquileres.*/
 
 SELECT 
-    category.name AS category_name,
+    category.name,
     (
         SELECT COUNT(*)
         FROM film
@@ -93,7 +93,7 @@ SELECT
 FROM 
     category
 ORDER BY 
-    total_alquileres DESC;
+    total_rental DESC;
 
 /*12. Encuentra el promedio de duración de las películas para cada clasificación de la tabla
 film y muestra la clasificación junto con el promedio de duración.*/
@@ -187,6 +187,24 @@ HAVING movies > 5;
 una subconsulta para encontrar los rental_ids con una duración superior a 5 días y luego
 selecciona las películas correspondientes.*/
 
+SELECT DISTINCT film.title
+FROM film 
+JOIN inventory ON film.film_id = inventory.film_id
+WHERE inventory.inventory_id IN (
+    SELECT rental.inventory_id
+    FROM rental 
+    WHERE DATEDIFF(rental.return_date, rental.rental_date) > 5
+    );
+
+#probamos también con la columnda rental_duration de la tabla Film
+    SELECT DISTINCT film.title
+FROM film 
+JOIN inventory ON film.film_id = inventory.film_id
+WHERE inventory.inventory_id IN (
+    SELECT rental.inventory_id
+    FROM rental 
+    WHERE film.rental_duration > 5
+    );
 
 /*23. Encuentra el nombre y apellido de los actores que no han actuado en ninguna película de
 la categoría "Horror". Utiliza una subconsulta para encontrar los actores que han actuado
@@ -223,4 +241,14 @@ consulta debe mostrar el nombre y apellido de los actores y el número de pelíc
 que han actuado juntos.*/
 SELECT *   #revisamos como se ve la tabla film_actor
 FROM film_actor;
+
+SELECT a1.first_name AS first_name_1, a1.last_name AS last_name_1,
+       a2.first_name AS first_name_2, a2.last_name AS last_name_2,
+       COUNT(*) AS movies_together
+FROM film_actor fa1
+JOIN film_actor fa2 ON fa1.film_id = fa2.film_id AND fa1.actor_id < fa2.actor_id
+JOIN actor a1 ON fa1.actor_id = a1.actor_id
+JOIN actor a2 ON fa2.actor_id = a2.actor_id
+GROUP BY a1.actor_id, a1.first_name, a1.last_name, a2.actor_id, a2.first_name, a2.last_name
+HAVING COUNT(*) >= 1;
 
